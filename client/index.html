@@ -529,10 +529,12 @@
         var cached = modelCache[heroType];
         if (!cached || !cached.body) return createFallbackCube(isLocal);
 
-        // 1. 克隆身体模型
+        console.log('[Model] Creating', heroType, 'scale:', cached.scale);
+
+        // 1. 克隆整个FBX
         var body = cached.body.clone(true);
 
-        // 2. 克隆skeleton并绑定
+        // 2. 找到SkinnedMesh，克隆skeleton绑定
         var clonedSkeleton = cached.skeleton.clone();
         var skinnedMesh = null;
         body.traverse(function(child) {
@@ -542,16 +544,19 @@
             }
         });
 
-        // 3. 居中模型：让脚底在y=0
+        // 3. 缩放整个body group（保留FBX内部的父子scale层级）
         body.scale.setScalar(cached.scale);
+
+        // 4. 居中：计算缩放后的world bounding box，让脚底在y=0
         var box = new THREE.Box3().setFromObject(body);
         body.position.y = -box.min.y;
+        console.log('[Model] Body box after scale: y=[', box.min.y.toFixed(2), ',', box.max.y.toFixed(2), '] height:', (box.max.y - box.min.y).toFixed(2));
 
-        // 4. 创建pivot（控制位置和旋转），body作为子节点
+        // 5. 创建pivot
         var pivot = new THREE.Group();
         pivot.add(body);
 
-        // 5. 创建mixer绑定到body（动画驱动body内的骨骼）
+        // 6. Mixer绑定body
         var mixer = new THREE.AnimationMixer(body);
         var actions = {};
         ['idle', 'run', 'attack'].forEach(function(animName) {
@@ -561,10 +566,10 @@
                 action.setEffectiveWeight(0);
                 if (animName === 'idle') { action.setEffectiveWeight(1); action.play(); }
                 actions[animName] = action;
+                console.log('[Model] Action:', animName, 'duration:', clip.duration.toFixed(2));
             }
         });
 
-        // group = pivot（用于移动），mixer绑定body（用于动画）
         return { group: pivot, mixer: mixer, actions: actions, currentState: 'idle' };
     }
 
