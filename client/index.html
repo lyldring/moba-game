@@ -529,22 +529,34 @@
         var cached = modelCache[heroType];
         if (!cached || !cached.body) return createFallbackCube(isLocal);
 
+        // 1. 克隆身体模型
         var body = cached.body.clone(true);
-        body.scale.setScalar(cached.scale);
 
+        // 2. 克隆skeleton并绑定
+        var clonedSkeleton = cached.skeleton.clone();
         var skinnedMesh = null;
         body.traverse(function(child) {
             if (child.isSkinnedMesh) {
                 skinnedMesh = child;
-                child.bind(cached.skeleton.clone(), child.bindMatrix);
+                child.bind(clonedSkeleton, child.bindMatrix);
             }
         });
 
+        // 3. 居中模型：让脚底在y=0
+        body.scale.setScalar(cached.scale);
+        var box = new THREE.Box3().setFromObject(body);
+        body.position.y = -box.min.y;
+
+        // 4. 创建pivot（控制位置和旋转），body作为子节点
+        var pivot = new THREE.Group();
+        pivot.add(body);
+
+        // 5. 创建mixer绑定到body（动画驱动body内的骨骼）
         var mixer = new THREE.AnimationMixer(body);
         var actions = {};
         ['idle', 'run', 'attack'].forEach(function(animName) {
             if (cached.clips[animName] && skinnedMesh) {
-                var clip = retargetClip(cached.clips[animName], skinnedMesh.skeleton);
+                var clip = retargetClip(cached.clips[animName], clonedSkeleton);
                 var action = mixer.clipAction(clip);
                 action.setEffectiveWeight(0);
                 if (animName === 'idle') { action.setEffectiveWeight(1); action.play(); }
@@ -552,7 +564,8 @@
             }
         });
 
-        return { group: body, mixer: mixer, actions: actions, currentState: 'idle' };
+        // group = pivot（用于移动），mixer绑定body（用于动画）
+        return { group: pivot, mixer: mixer, actions: actions, currentState: 'idle' };
     }
 
     function retargetClip(sourceClip, targetSkeleton) {
@@ -565,12 +578,14 @@
     }
 
     function createFallbackCube(isLocal) {
+        var pivot = new THREE.Group();
         var geo = new THREE.BoxGeometry(0.6, 1.0, 0.6);
         var mat = new THREE.MeshStandardMaterial({ color: isLocal ? 0x00b894 : 0x3498db, roughness: 0.4 });
         var mesh = new THREE.Mesh(geo, mat);
         mesh.castShadow = true;
         mesh.position.y = 0.5;
-        return { group: mesh, mixer: null, actions: {}, currentState: 'idle' };
+        pivot.add(mesh);
+        return { group: pivot, mixer: null, actions: {}, currentState: 'idle' };
     }
 
     function switchAnimation(player, newState) {
