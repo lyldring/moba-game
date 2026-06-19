@@ -20,19 +20,16 @@ public class RoomManager {
     public void createRoom(ChannelHandlerContext ctx, JsonObject msg) {
         String userId = msg.get("userId").getAsString();
         String roomId = String.format("%04d", random.nextInt(10000));
-
         Room room = new Room(roomId, userId, ctx);
         rooms.put(roomId, room);
         playerToRoom.put(ctx, roomId);
 
-        // 回复创建者（含所有玩家位置）
         JsonObject resp = new JsonObject();
         resp.addProperty("type", "ROOM_CREATED");
         resp.addProperty("roomId", roomId);
         resp.add("players", room.getPlayerList());
         resp.add("positions", room.getPlayerPositions());
         send(ctx, resp);
-
         System.out.println("[Room] " + userId + " created room " + roomId);
     }
 
@@ -40,17 +37,12 @@ public class RoomManager {
     public void joinRoom(ChannelHandlerContext ctx, JsonObject msg) {
         String userId = msg.get("userId").getAsString();
         String roomId = msg.get("roomId").getAsString();
-
         Room room = rooms.get(roomId);
-        if (room == null) {
-            sendError(ctx, "Room " + roomId + " not found");
-            return;
-        }
+        if (room == null) { sendError(ctx, "Room " + roomId + " not found"); return; }
 
         room.addPlayer(userId, ctx);
         playerToRoom.put(ctx, roomId);
 
-        // 回复加入者（含所有玩家位置）
         JsonObject resp = new JsonObject();
         resp.addProperty("type", "ROOM_JOINED");
         resp.addProperty("roomId", roomId);
@@ -58,9 +50,7 @@ public class RoomManager {
         resp.add("positions", room.getPlayerPositions());
         send(ctx, resp);
 
-        // 广播给房间其他人
         broadcastRoomState(room, ctx);
-
         System.out.println("[Room] " + userId + " joined room " + roomId);
     }
 
@@ -68,18 +58,15 @@ public class RoomManager {
     public void leaveRoom(ChannelHandlerContext ctx, JsonObject msg) {
         String roomId = playerToRoom.get(ctx);
         if (roomId == null) return;
-
         Room room = rooms.get(roomId);
         if (room == null) return;
 
         String userId = room.removePlayer(ctx);
         playerToRoom.remove(ctx);
 
-        // 回复离开者
         JsonObject resp = new JsonObject();
         resp.addProperty("type", "ROOM_LEFT");
         send(ctx, resp);
-
         System.out.println("[Room] " + userId + " left room " + roomId);
 
         if (room.isEmpty()) {
@@ -94,10 +81,8 @@ public class RoomManager {
     public void handleMove(ChannelHandlerContext ctx, JsonObject msg) {
         String roomId = playerToRoom.get(ctx);
         if (roomId == null) return;
-
         Room room = rooms.get(roomId);
         if (room == null) return;
-
         String userId = room.getUserId(ctx);
         if (userId == null) return;
 
@@ -105,7 +90,6 @@ public class RoomManager {
         float z = msg.get("z").getAsFloat();
         room.updatePosition(userId, x, z);
 
-        // 广播给房间内其他人
         JsonObject resp = new JsonObject();
         resp.addProperty("type", "PLAYER_MOVED");
         resp.addProperty("userId", userId);
@@ -114,11 +98,52 @@ public class RoomManager {
         room.broadcast(resp, ctx);
     }
 
+    // ===== SELECT_HERO =====
+    public void handleSelectHero(ChannelHandlerContext ctx, JsonObject msg) {
+        String roomId = playerToRoom.get(ctx);
+        if (roomId == null) return;
+        Room room = rooms.get(roomId);
+        if (room == null) return;
+        String userId = room.getUserId(ctx);
+        if (userId == null) return;
+
+        String heroType = msg.get("heroType").getAsString();
+        room.setHeroType(userId, heroType);
+        System.out.println("[Room] " + userId + " selected " + heroType + " in room " + roomId);
+
+        // 广播给所有人（含自己）
+        JsonObject resp = new JsonObject();
+        resp.addProperty("type", "HERO_SELECTED");
+        resp.addProperty("userId", userId);
+        resp.addProperty("heroType", heroType);
+        room.broadcastAll(resp);
+    }
+
+    // ===== CHANGE_STATE =====
+    public void handleChangeState(ChannelHandlerContext ctx, JsonObject msg) {
+        String roomId = playerToRoom.get(ctx);
+        if (roomId == null) return;
+        Room room = rooms.get(roomId);
+        if (room == null) return;
+        String userId = room.getUserId(ctx);
+        if (userId == null) return;
+
+        String state = msg.get("state").getAsString();
+        String oldState = room.getState(userId);
+        if (state.equals(oldState)) return; // 状态没变，不广播
+        room.setState(userId, state);
+
+        JsonObject resp = new JsonObject();
+        resp.addProperty("type", "STATE_CHANGED");
+        resp.addProperty("userId", userId);
+        resp.addProperty("state", state);
+        room.broadcast(resp, ctx);
+    }
+
     // ===== 断开连接 =====
     public void handleDisconnect(ChannelHandlerContext ctx) {
         String roomId = playerToRoom.remove(ctx);
         if (roomId == null) return;
-
         Room room = rooms.get(roomId);
         if (room == null) return;
 
@@ -133,7 +158,6 @@ public class RoomManager {
         }
     }
 
-    // ===== 广播房间状态 =====
     private void broadcastRoomState(Room room, ChannelHandlerContext exclude) {
         JsonObject resp = new JsonObject();
         resp.addProperty("type", "ROOM_STATE");

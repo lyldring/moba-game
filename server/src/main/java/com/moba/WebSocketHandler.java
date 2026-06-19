@@ -72,7 +72,9 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
                     case "CREATE_ROOM": roomManager.createRoom(ctx, msg); break;
                     case "JOIN_ROOM":   roomManager.joinRoom(ctx, msg);   break;
                     case "LEAVE_ROOM":  roomManager.leaveRoom(ctx, msg);  break;
-                    case "MOVE":        roomManager.handleMove(ctx, msg); break;
+                    case "MOVE":           roomManager.handleMove(ctx, msg);        break;
+                    case "SELECT_HERO":   roomManager.handleSelectHero(ctx, msg);  break;
+                    case "CHANGE_STATE":  roomManager.handleChangeState(ctx, msg);  break;
                     default:
                         System.out.println("[WS] Unknown type: " + type);
                         sendError(ctx, "Unknown message type: " + type);
