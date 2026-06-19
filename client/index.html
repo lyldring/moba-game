@@ -14,14 +14,11 @@
             overflow: hidden;
         }
 
-        /* ========== 大厅UI ========== */
-        #lobby {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
+        /* ===== 通用 ===== */
+        .screen { display: none; justify-content: center; align-items: center; min-height: 100vh; }
+        .screen.active { display: flex; }
+
+        .card {
             background: rgba(255,255,255,0.05);
             border-radius: 20px;
             padding: 40px;
@@ -30,282 +27,152 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 26px;
+            text-align: center; margin-bottom: 30px; font-size: 26px;
             background: linear-gradient(90deg, #ff6b6b, #ffd93d);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
         .section { margin-bottom: 20px; }
-        .section-label {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+        .section-label { font-size: 12px; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
         .row { display: flex; gap: 10px; margin-bottom: 10px; }
         input[type="text"] {
-            flex: 1;
-            padding: 11px 14px;
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.05);
-            color: #fff;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.3s;
+            flex: 1; padding: 11px 14px; border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);
+            color: #fff; font-size: 14px; outline: none;
         }
         input[type="text"]:focus { border-color: #ff6b6b; }
         input[type="text"]::placeholder { color: #555; }
-        button {
-            padding: 11px 18px;
-            border-radius: 10px;
-            border: none;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .btn-connect {
-            background: linear-gradient(135deg, #00b894, #00cec9);
-            color: #fff;
-            width: 100%;
-        }
-        .btn-connect:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,184,148,0.4); }
-        .btn-connect.connected { background: linear-gradient(135deg, #e74c3c, #c0392b); }
-        .btn-create {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-            color: #fff;
-            flex: 1;
-        }
-        .btn-create:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(255,107,107,0.4); }
-        .btn-join {
-            background: linear-gradient(135deg, #ffd93d, #ff9f43);
-            color: #000;
-        }
-        .btn-join:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(255,217,61,0.4); }
-        .status-bar {
-            text-align: center;
-            margin-bottom: 15px;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-        .status-bar.disconnected { background: rgba(231,76,60,0.2); color: #e74c3c; }
-        .status-bar.connected { background: rgba(46,204,113,0.2); color: #2ecc71; }
-        .log-panel {
-            margin-top: 15px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            padding: 12px;
-            max-height: 160px;
-            overflow-y: auto;
-        }
+        button { padding: 11px 18px; border-radius: 10px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-green { background: linear-gradient(135deg, #00b894, #00cec9); color: #fff; width: 100%; }
+        .btn-green:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,184,148,0.4); }
+        .btn-green.off { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .btn-red { background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: #fff; flex: 1; }
+        .btn-yellow { background: linear-gradient(135deg, #ffd93d, #ff9f43); color: #000; }
+        .btn-big { padding: 14px 28px; font-size: 16px; border-radius: 12px; width: 100%; margin-top: 10px; }
+        .status-bar { text-align: center; margin-bottom: 15px; padding: 10px; border-radius: 8px; font-size: 14px; }
+        .status-bar.off { background: rgba(231,76,60,0.2); color: #e74c3c; }
+        .status-bar.on { background: rgba(46,204,113,0.2); color: #2ecc71; }
+        .log-panel { margin-top: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 12px; max-height: 160px; overflow-y: auto; }
         .log-panel .title { font-size: 11px; color: #666; margin-bottom: 8px; }
         .log-entry { font-size: 11px; color: #888; margin-bottom: 3px; font-family: monospace; }
         .log-entry.ok { color: #2ecc71; }
         .log-entry.err { color: #e74c3c; }
         .log-entry.info { color: #3498db; }
 
-        /* ========== 选人界面 ========== */
-        #heroSelect {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            z-index: 50;
+        /* ===== 房间界面 ===== */
+        .room-header { text-align: center; margin-bottom: 20px; }
+        .room-id { font-size: 36px; font-weight: bold; color: #ffd93d; letter-spacing: 3px; }
+        .room-sub { font-size: 13px; color: #888; margin-top: 4px; }
+        .room-players { margin: 20px 0; }
+        .room-player {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 14px; background: rgba(255,255,255,0.04); border-radius: 10px; margin-bottom: 6px;
         }
-        .hero-title {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            background: linear-gradient(90deg, #ff6b6b, #ffd93d);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .hero-subtitle {
-            font-size: 14px;
-            color: #888;
-            margin-bottom: 30px;
-        }
-        .hero-cards {
-            display: flex;
-            gap: 20px;
-        }
+        .room-player .name { font-size: 14px; }
+        .room-player .name.is-me { color: #2ecc71; font-weight: 600; }
+        .room-player .hero-tag { font-size: 12px; color: #ffd93d; }
+        .room-player .status-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+        .room-player .status-tag.ready { background: rgba(46,204,113,0.2); color: #2ecc71; }
+        .room-player .status-tag.waiting { background: rgba(255,217,61,0.15); color: #ffd93d; }
+        .room-actions { display: flex; gap: 10px; margin-top: 15px; }
+
+        /* ===== 选人界面 ===== */
+        #heroSelect { flex-direction: column; }
+        .hero-title { font-size: 28px; font-weight: 700; margin-bottom: 8px; background: linear-gradient(90deg, #ff6b6b, #ffd93d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-subtitle { font-size: 14px; color: #888; margin-bottom: 30px; }
+        .hero-cards { display: flex; gap: 20px; }
         .hero-card {
-            background: rgba(255,255,255,0.05);
-            border: 2px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 30px 24px;
-            width: 180px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
+            background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 16px; padding: 30px 24px; width: 180px; text-align: center;
+            cursor: pointer; transition: all 0.3s;
         }
-        .hero-card:hover {
-            border-color: #ffd93d;
-            background: rgba(255,217,61,0.08);
-            transform: translateY(-4px);
-            box-shadow: 0 10px 30px rgba(255,217,61,0.15);
-        }
+        .hero-card:hover { border-color: #ffd93d; background: rgba(255,217,61,0.08); transform: translateY(-4px); box-shadow: 0 10px 30px rgba(255,217,61,0.15); }
         .hero-card .icon { font-size: 48px; margin-bottom: 12px; }
-        .hero-card .name {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-        .hero-card .desc {
-            font-size: 12px;
-            color: #888;
-            line-height: 1.5;
-        }
-        .loading-text {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #ffd93d;
-            display: none;
-        }
+        .hero-card .name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+        .hero-card .desc { font-size: 12px; color: #888; line-height: 1.5; }
+        .loading-text { margin-top: 20px; font-size: 14px; color: #ffd93d; display: none; }
 
-        /* ========== 游戏场景 ========== */
-        #gameScreen {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw;
-            height: 100vh;
-        }
-
-        /* HUD */
-        #hud {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            display: none;
-            pointer-events: none;
-            z-index: 10;
-        }
+        /* ===== 游戏HUD ===== */
+        #gameScreen { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; }
+        #hud { position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: none; pointer-events: none; z-index: 10; }
         #hud > * { pointer-events: auto; }
         .hud-top-left { position: absolute; top: 16px; left: 16px; }
-        .hud-box {
-            background: rgba(0,0,0,0.75);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
-            padding: 12px 18px;
-            border: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 8px;
-            min-width: 160px;
-        }
+        .hud-box { background: rgba(0,0,0,0.75); backdrop-filter: blur(10px); border-radius: 10px; padding: 12px 18px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; min-width: 160px; }
         .hud-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
         .hud-value { font-size: 20px; font-weight: bold; color: #fff; margin-top: 2px; }
         .hud-top-right { position: absolute; top: 16px; right: 16px; min-width: 200px; }
-        .hud-player-title { font-size: 13px; font-weight: 700; color: #ffd93d; margin-bottom: 8px; letter-spacing: 1px; }
+        .hud-player-title { font-size: 13px; font-weight: 700; color: #ffd93d; margin-bottom: 8px; }
         .hud-player-item { font-size: 13px; color: #ccc; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .hud-player-item.is-me { color: #2ecc71; font-weight: 600; }
         .hud-player-item:last-child { border-bottom: none; }
         .hud-hero-icon { font-size: 14px; margin-right: 4px; }
-        .btn-hud {
-            background: rgba(0,0,0,0.75);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.15);
-            color: #fff;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+        .btn-hud { background: rgba(0,0,0,0.75); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer; }
         .btn-hud:hover { background: rgba(255,255,255,0.15); }
-        .hud-bottom {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.7); backdrop-filter: blur(10px);
-            border-radius: 10px; padding: 10px 24px;
-            border: 1px solid rgba(255,255,255,0.08);
-            font-size: 13px; color: #aaa;
-        }
-        .hud-bottom kbd {
-            background: rgba(255,255,255,0.1); border-radius: 4px;
-            padding: 2px 7px; font-size: 12px; font-family: monospace;
-            color: #ffd93d; margin: 0 2px;
-        }
-        .hud-coord {
-            position: absolute; bottom: 20px; left: 16px;
-            background: rgba(0,0,0,0.5); backdrop-filter: blur(8px);
-            border-radius: 6px; padding: 6px 12px;
-            font-size: 11px; font-family: monospace; color: #666;
-        }
-        .cam-toggle {
-            position: absolute; top: 16px; right: 240px;
-            background: rgba(0,0,0,0.75); backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.15);
-            color: #fff; padding: 8px 14px; border-radius: 8px;
-            font-size: 13px; cursor: pointer; transition: all 0.2s;
-        }
+        .hud-bottom { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); border-radius: 10px; padding: 10px 24px; border: 1px solid rgba(255,255,255,0.08); font-size: 13px; color: #aaa; }
+        .hud-bottom kbd { background: rgba(255,255,255,0.1); border-radius: 4px; padding: 2px 7px; font-size: 12px; font-family: monospace; color: #ffd93d; margin: 0 2px; }
+        .hud-coord { position: absolute; bottom: 20px; left: 16px; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); border-radius: 6px; padding: 6px 12px; font-size: 11px; font-family: monospace; color: #666; }
+        .cam-toggle { position: absolute; top: 16px; right: 240px; background: rgba(0,0,0,0.75); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; }
         .cam-toggle:hover { background: rgba(255,255,255,0.15); }
         .cam-toggle.active { background: rgba(255,217,61,0.2); border-color: #ffd93d; color: #ffd93d; }
-        .hud-camera {
-            position: absolute; top: 52px; right: 240px;
-            background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
-            border-radius: 10px; padding: 14px 18px;
-            border: 1px solid rgba(255,255,255,0.12);
-            min-width: 200px; display: none;
-        }
+        .hud-camera { position: absolute; top: 52px; right: 240px; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); border-radius: 10px; padding: 14px 18px; border: 1px solid rgba(255,255,255,0.12); min-width: 200px; display: none; }
         .hud-camera.show { display: block; }
         .hud-camera-title { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
         .cam-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
         .cam-row:last-child { margin-bottom: 0; }
         .cam-label { font-size: 12px; color: #aaa; min-width: 40px; }
-        .cam-slider {
-            flex: 1; margin: 0 8px;
-            -webkit-appearance: none; appearance: none;
-            height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; outline: none;
-        }
-        .cam-slider::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 14px; height: 14px;
-            border-radius: 50%; background: #ffd93d; cursor: pointer;
-        }
+        .cam-slider { flex: 1; margin: 0 8px; -webkit-appearance: none; appearance: none; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; outline: none; }
+        .cam-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #ffd93d; cursor: pointer; }
         .cam-val { font-size: 11px; font-family: monospace; color: #ffd93d; min-width: 24px; text-align: right; }
     </style>
 </head>
 <body>
 
-    <!-- 大厅 -->
-    <div id="lobby">
-        <div class="container">
+    <!-- ===== 大厅 ===== -->
+    <div id="lobbyScreen" class="screen active">
+        <div class="card">
             <h1>🎮 MOBA 防守游戏</h1>
-            <div id="connectSection">
-                <div class="section">
-                    <div class="section-label">连接状态</div>
-                    <div id="statusBar" class="status-bar disconnected">未连接</div>
-                    <button id="btnConnect" class="btn-connect" onclick="toggleConnection()">连接服务器</button>
-                </div>
-                <div class="section">
-                    <div class="section-label">用户ID</div>
-                    <input type="text" id="inputUserId" placeholder="输入你的用户ID">
-                </div>
-                <div class="section">
-                    <div class="section-label">房间操作</div>
-                    <div class="row"><button class="btn-create" onclick="createRoom()">🏠 创建房间</button></div>
-                    <div class="row">
-                        <input type="text" id="inputRoomId" placeholder="输入房间号">
-                        <button class="btn-join" onclick="joinRoom()">🚪 加入</button>
-                    </div>
+            <div class="section">
+                <div class="section-label">连接状态</div>
+                <div id="statusBar" class="status-bar off">未连接</div>
+                <button id="btnConnect" class="btn-green" onclick="toggleConnection()">连接服务器</button>
+            </div>
+            <div class="section">
+                <div class="section-label">用户ID</div>
+                <input type="text" id="inputUserId" placeholder="输入你的用户ID">
+            </div>
+            <div class="section">
+                <div class="section-label">房间操作</div>
+                <div class="row"><button class="btn-red" onclick="createRoom()">🏠 创建房间</button></div>
+                <div class="row">
+                    <input type="text" id="inputRoomId" placeholder="输入房间号">
+                    <button class="btn-yellow" onclick="joinRoom()">🚪 加入</button>
                 </div>
             </div>
             <div class="log-panel">
-                <div class="title">📋 控制台日志</div>
+                <div class="title">📋 日志</div>
                 <div id="logContainer"></div>
             </div>
         </div>
     </div>
 
-    <!-- 选人 -->
-    <div id="heroSelect">
+    <!-- ===== 房间 ===== -->
+    <div id="roomScreen" class="screen">
+        <div class="card">
+            <div class="room-header">
+                <div class="room-id" id="roomDisplayId">#0000</div>
+                <div class="room-sub">等待玩家加入...</div>
+            </div>
+            <div class="room-players" id="roomPlayerList"></div>
+            <div class="room-actions">
+                <button class="btn-yellow btn-big" onclick="goToHeroSelect()">🗡️ 选择英雄</button>
+            </div>
+            <div class="room-actions">
+                <button class="btn-hud" style="flex:1" onclick="leaveRoom()">🚪 离开房间</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 选人 ===== -->
+    <div id="heroSelect" class="screen" style="flex-direction:column;">
         <div class="hero-title">选择英雄</div>
         <div class="hero-subtitle">点击选择你的职业</div>
         <div class="hero-cards">
@@ -326,59 +193,39 @@
             </div>
         </div>
         <div class="loading-text" id="heroLoading">⏳ 模型加载中...</div>
+        <button class="btn-hud" style="margin-top:20px;" onclick="backToRoom()">← 返回房间</button>
     </div>
 
-    <!-- 游戏 -->
+    <!-- ===== 游戏 ===== -->
     <div id="gameScreen"></div>
-
     <div id="hud">
         <div class="hud-top-left">
-            <div class="hud-box">
-                <div class="hud-label">房间</div>
-                <div class="hud-value" id="hudRoomId">#0000</div>
-            </div>
-            <div class="hud-box">
-                <div class="hud-label">玩家</div>
-                <div class="hud-value" id="hudPlayerCount">0</div>
-            </div>
+            <div class="hud-box"><div class="hud-label">房间</div><div class="hud-value" id="hudRoomId">#0000</div></div>
+            <div class="hud-box"><div class="hud-label">玩家</div><div class="hud-value" id="hudPlayerCount">0</div></div>
         </div>
         <div class="hud-top-right">
             <div class="hud-box">
                 <div class="hud-player-title">🎮 在线玩家</div>
                 <div id="hudPlayerList"></div>
             </div>
-            <div style="text-align:right; margin-top:8px;">
+            <div style="text-align:right;margin-top:8px;">
                 <button class="btn-hud" onclick="leaveRoom()">🚪 离开房间</button>
             </div>
         </div>
         <div class="hud-bottom">
-            <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移动 &nbsp;|&nbsp;
-            鼠标点击移动 &nbsp;|&nbsp;
-            <kbd>ESC</kbd> 离开
+            <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移动 | 鼠标点击移动 | <kbd>ESC</kbd> 离开
         </div>
-        <div class="hud-coord" id="coordDisplay">XYZ: 0.0 / 0.0 / 0.0</div>
+        <div class="hud-coord" id="coordDisplay">XYZ: 0 / 0 / 0</div>
         <button class="cam-toggle" id="camToggle" onclick="toggleCamPanel()">📷 相机</button>
         <div class="hud-camera" id="camPanel">
             <div class="hud-camera-title">📷 相机设置</div>
-            <div class="cam-row">
-                <span class="cam-label">高度</span>
-                <input type="range" class="cam-slider" id="camHeight" min="8" max="35" value="19" step="1">
-                <span class="cam-val" id="camHeightVal">19</span>
-            </div>
-            <div class="cam-row">
-                <span class="cam-label">距离</span>
-                <input type="range" class="cam-slider" id="camDist" min="0" max="25" value="16" step="1">
-                <span class="cam-val" id="camDistVal">16</span>
-            </div>
-            <div class="cam-row">
-                <span class="cam-label">FOV</span>
-                <input type="range" class="cam-slider" id="camFov" min="30" max="80" value="52" step="1">
-                <span class="cam-val" id="camFovVal">52</span>
-            </div>
+            <div class="cam-row"><span class="cam-label">高度</span><input type="range" class="cam-slider" id="camHeight" min="8" max="35" value="19" step="1"><span class="cam-val" id="camHeightVal">19</span></div>
+            <div class="cam-row"><span class="cam-label">距离</span><input type="range" class="cam-slider" id="camDist" min="0" max="25" value="16" step="1"><span class="cam-val" id="camDistVal">16</span></div>
+            <div class="cam-row"><span class="cam-label">FOV</span><input type="range" class="cam-slider" id="camFov" min="30" max="80" value="52" step="1"><span class="cam-val" id="camFovVal">52</span></div>
         </div>
     </div>
 
-    <!-- Three.js r137 + FBXLoader -->
+    <!-- Three.js r137 -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/libs/fflate.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/loaders/FBXLoader.js"></script>
@@ -391,91 +238,75 @@
     var MOVE_SPEED = 5;
     var SYNC_INTERVAL = 50;
     var LERP_SPEED = 10;
-    var MODEL_SCALE = 0.015; // FBX模型缩放
+    var TARGET_MODEL_HEIGHT = 2.0; // 模型适配目标高度（单位）
 
-    // 英雄配置
     var HERO_CONFIG = {
         WARRIOR: {
             name: '剑士', icon: '⚔️',
             body: '/jian/Maria_WProp_J_J_Ong_jian.fbx',
-            anims: {
-                idle: '/Idle.fbx',
-                run: '/Great_Sword_Run.fbx',
-                attack: '/Great_Sword_Slash_kan.fbx'
-            }
+            anims: { idle: '/Idle.fbx', run: '/Great_Sword_Run.fbx', attack: '/Great_Sword_Slash_kan.fbx' }
         },
         ARCHER: {
             name: '弓箭手', icon: '🏹',
             body: '/gong/Erika_Archer_With_Bow_Arrow_gong.fbx',
-            anims: {
-                idle: '/Idle.fbx',
-                run: '/Standing_Run_Forward.fbx',
-                attack: '/Standing_Draw_Arrow_she.fbx'
-            }
+            anims: { idle: '/Idle.fbx', run: '/Standing_Run_Forward.fbx', attack: '/Standing_Draw_Arrow_she.fbx' }
         },
         MAGE: {
             name: '魔法师', icon: '🔮',
             body: '/mage/Ganfaul_M_Aure.fbx',
-            anims: {
-                idle: '/Idle.fbx',
-                run: '/mage/Ganfaul_M_Aure_Run.fbx',
-                attack: '/mage/Ganfaul_M_Aure_Magic_Attack_01.fbx'
-            }
+            anims: { idle: '/Idle.fbx', run: '/mage/Ganfaul_M_Aure_Run.fbx', attack: '/mage/Ganfaul_M_Aure_Magic_Attack_01.fbx' }
         }
     };
 
-    // 全局模型缓存
-    var modelCache = {}; // heroType -> { body, skeleton, clips: {idle, run, attack} }
+    var modelCache = {};
 
     // ============================================================
     //  状态
     // ============================================================
-    var ws = null;
-    var connected = false;
-    var currentRoomId = null;
-    var myUserId = null;
-    var myHeroType = null;
-    var inGame = false;
-
-    // Three.js
-    var scene, camera, renderer, clock;
-    var groundPlane;
+    var ws = null, connected = false, currentRoomId = null, myUserId = null, myHeroType = null, inGame = false;
+    var scene, camera, renderer, clock, groundPlane;
     var camHeight = 19, camDist = 16, camFov = 52;
-
-    // 玩家: { mesh, mixer, actions:{idle,run,attack}, currentState, targetX, targetZ }
-    var localPlayer = null;
-    var otherPlayers = {};
-
-    // 输入
-    var keys = { w: false, a: false, s: false, d: false };
-    var moveTarget = null;
-    var syncTimer = null;
-    var lastSentX = null, lastSentZ = null;
-    var lastSentState = null;
-    var raycaster = new THREE.Raycaster();
-    var mouse = new THREE.Vector2();
-
-    // 玩家hero缓存（含positions返回的heroType）
-    var playerHeroMap = {};
+    var localPlayer = null, otherPlayers = {};
+    var keys = { w: false, a: false, s: false, d: false }, moveTarget = null;
+    var syncTimer = null, lastSentX = null, lastSentZ = null, lastSentState = null;
+    var raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2();
+    var playerHeroMap = {}; // userId -> heroType
+    var roomPlayerData = {}; // userId -> { heroType, inGame }
 
     // ============================================================
     //  DOM
     // ============================================================
+    var screens = {
+        lobby: document.getElementById('lobbyScreen'),
+        room: document.getElementById('roomScreen'),
+        hero: document.getElementById('heroSelect'),
+        game: document.getElementById('gameScreen')
+    };
     var statusBar = document.getElementById('statusBar');
     var btnConnect = document.getElementById('btnConnect');
     var inputUserId = document.getElementById('inputUserId');
-    var lobby = document.getElementById('lobby');
-    var heroSelect = document.getElementById('heroSelect');
-    var heroLoading = document.getElementById('heroLoading');
-    var gameScreen = document.getElementById('gameScreen');
-    var hud = document.getElementById('hud');
-    var hudRoomId = document.getElementById('hudRoomId');
-    var hudPlayerCount = document.getElementById('hudPlayerCount');
-    var hudPlayerList = document.getElementById('hudPlayerList');
-    var coordDisplay = document.getElementById('coordDisplay');
     var logContainer = document.getElementById('logContainer');
+    var hud = document.getElementById('hud');
 
     inputUserId.value = 'player_' + Math.random().toString(36).substr(2, 6);
+
+    // ============================================================
+    //  屏幕切换
+    // ============================================================
+    function showScreen(name) {
+        for (var k in screens) {
+            screens[k].classList.remove('active');
+            screens[k].style.display = 'none';
+        }
+        if (name === 'game') {
+            screens.game.style.display = 'block';
+            hud.style.display = 'block';
+        } else {
+            screens[name].classList.add('active');
+            screens[name].style.display = 'flex';
+            hud.style.display = 'none';
+        }
+    }
 
     // ============================================================
     //  日志
@@ -490,45 +321,29 @@
     // ============================================================
     //  WebSocket
     // ============================================================
-    function toggleConnection() {
-        if (connected) { disconnect(); } else { connect(); }
-    }
+    function toggleConnection() { connected ? disconnect() : connect(); }
 
     function connect() {
         myUserId = inputUserId.value.trim();
         if (!myUserId) { log('请输入用户ID', 'err'); return; }
-        log('正在连接...', 'info');
+        log('连接中...', 'info');
         ws = new WebSocket(WS_URL);
-        ws.onopen = function() {
-            connected = true;
-            updateConnectionUI(true);
-            log('✅ 已连接', 'ok');
-        };
+        ws.onopen = function() { connected = true; updateConnUI(); log('✅ 已连接', 'ok'); };
         ws.onmessage = function(e) { handleMessage(JSON.parse(e.data)); };
-        ws.onclose = function() {
-            connected = false;
-            updateConnectionUI(false);
-            log('❌ 断开连接', 'err');
-            if (inGame) exitToLobby();
-        };
+        ws.onclose = function() { connected = false; updateConnUI(); log('❌ 断开', 'err'); if (inGame) exitToLobby(); };
         ws.onerror = function() { log('❌ 连接错误', 'err'); };
     }
 
-    function disconnect() {
-        if (currentRoomId) leaveRoom();
-        if (ws) ws.close();
+    function disconnect() { if (currentRoomId) leaveRoom(); if (ws) ws.close(); }
+
+    function updateConnUI() {
+        statusBar.textContent = connected ? '已连接' : '未连接';
+        statusBar.className = 'status-bar ' + (connected ? 'on' : 'off');
+        btnConnect.textContent = connected ? '断开连接' : '连接服务器';
+        btnConnect.className = 'btn-green' + (connected ? ' off' : '');
     }
 
-    function updateConnectionUI(isConnected) {
-        statusBar.textContent = isConnected ? '已连接' : '未连接';
-        statusBar.className = 'status-bar ' + (isConnected ? 'connected' : 'disconnected');
-        btnConnect.textContent = isConnected ? '断开连接' : '连接服务器';
-        btnConnect.className = 'btn-connect' + (isConnected ? ' connected' : '');
-    }
-
-    function send(obj) {
-        if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj));
-    }
+    function send(obj) { if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj)); }
 
     // ============================================================
     //  消息处理
@@ -539,30 +354,35 @@
             case 'ROOM_CREATED':
                 currentRoomId = data.roomId;
                 log('🎉 房间创建: #' + data.roomId, 'ok');
-                showHeroSelect(data.players, data.positions);
+                buildRoomData(data.players, data.positions);
+                showScreen('room');
+                updateRoomUI();
                 break;
             case 'ROOM_JOINED':
                 currentRoomId = data.roomId;
                 log('🚪 加入房间: #' + data.roomId, 'ok');
-                showHeroSelect(data.players, data.positions);
+                buildRoomData(data.players, data.positions);
+                showScreen('room');
+                updateRoomUI();
                 break;
             case 'ROOM_LEFT':
                 log('👋 已离开', 'info');
-                currentRoomId = null;
-                myHeroType = null;
+                currentRoomId = null; myHeroType = null;
                 exitToLobby();
                 break;
             case 'ROOM_STATE':
                 log('📢 玩家变动 (' + data.players.length + '人)', 'info');
-                syncPlayerList(data.players, data.positions);
+                buildRoomData(data.players, data.positions);
+                if (!inGame) updateRoomUI();
+                else syncOtherPlayers(data.players, data.positions);
                 break;
             case 'HERO_SELECTED':
                 playerHeroMap[data.userId] = data.heroType;
+                roomPlayerData[data.userId] = roomPlayerData[data.userId] || {};
+                roomPlayerData[data.userId].heroType = data.heroType;
                 log('🗡️ ' + data.userId + ' 选择了 ' + HERO_CONFIG[data.heroType].name, 'ok');
-                // 如果在游戏中，为新玩家加载模型
-                if (inGame && data.userId !== myUserId) {
-                    ensureOtherPlayerModel(data.userId, data.heroType);
-                }
+                if (!inGame) updateRoomUI();
+                else if (data.userId !== myUserId) ensureOtherPlayerModel(data.userId, data.heroType);
                 break;
             case 'PLAYER_MOVED':
                 updateOtherPlayerPosition(data.userId, data.x, data.z);
@@ -573,9 +393,20 @@
             case 'ERROR':
                 log('❌ ' + data.message, 'err');
                 break;
-            default:
-                log('❓ ' + data.type, 'err');
         }
+    }
+
+    function buildRoomData(players, positions) {
+        roomPlayerData = {};
+        if (positions) {
+            positions.forEach(function(p) {
+                roomPlayerData[p.userId] = { heroType: p.heroType || null, state: p.state || 'IDLE' };
+                if (p.heroType) playerHeroMap[p.userId] = p.heroType;
+            });
+        }
+        players.forEach(function(uid) {
+            if (!roomPlayerData[uid]) roomPlayerData[uid] = { heroType: null, state: 'IDLE' };
+        });
     }
 
     // ============================================================
@@ -601,51 +432,70 @@
         send({ type: 'LEAVE_ROOM', userId: myUserId });
     }
 
-    // ============================================================
-    //  选人界面
-    // ============================================================
-    function showHeroSelect(players, positions) {
-        lobby.style.display = 'none';
-        heroSelect.style.display = 'flex';
-        heroLoading.style.display = 'none';
-
-        // 缓存已有玩家的heroType
-        if (positions) {
-            positions.forEach(function(p) {
-                if (p.heroType) playerHeroMap[p.userId] = p.heroType;
-            });
-        }
+    function updateRoomUI() {
+        document.getElementById('roomDisplayId').textContent = '#' + currentRoomId;
+        var list = document.getElementById('roomPlayerList');
+        var uids = Object.keys(roomPlayerData);
+        list.innerHTML = uids.map(function(uid) {
+            var isMe = uid === myUserId;
+            var d = roomPlayerData[uid];
+            var hero = d.heroType ? HERO_CONFIG[d.heroType] : null;
+            var heroTag = hero ? hero.icon + ' ' + hero.name : '未选择';
+            var tagClass = hero ? 'ready' : 'waiting';
+            var tagText = hero ? '已选' : '待选';
+            return '<div class="room-player">' +
+                '<span class="name' + (isMe ? ' is-me' : '') + '">' + uid + (isMe ? ' (你)' : '') + '</span>' +
+                '<span class="hero-tag">' + heroTag + '</span>' +
+                '<span class="status-tag ' + tagClass + '">' + tagText + '</span>' +
+                '</div>';
+        }).join('');
     }
 
+    function goToHeroSelect() { showScreen('hero'); }
+    function backToRoom() { showScreen('room'); }
+
+    // ============================================================
+    //  选人
+    // ============================================================
     function selectHero(heroType) {
         myHeroType = heroType;
-        heroLoading.style.display = 'block';
+        document.getElementById('heroLoading').style.display = 'block';
+        document.getElementById('heroLoading').textContent = '⏳ 模型加载中...';
         log('🗡️ 选择了 ' + HERO_CONFIG[heroType].name, 'ok');
         send({ type: 'SELECT_HERO', userId: myUserId, heroType: heroType });
 
-        // 预加载模型，然后进入游戏
         preloadModel(heroType, function() {
-            heroSelect.style.display = 'none';
+            document.getElementById('heroLoading').style.display = 'none';
+            showScreen('game');
             enterGame();
         });
     }
 
     // ============================================================
-    //  FBX 模型加载 & 动画 Retarget
+    //  FBX 加载 & 模型适配
     // ============================================================
     function preloadModel(heroType, callback) {
         if (modelCache[heroType]) { callback(); return; }
 
         var config = HERO_CONFIG[heroType];
         var loader = new THREE.FBXLoader();
-        var loaded = { body: null, skeleton: null, clips: {} };
+        var loaded = { body: null, skeleton: null, clips: {}, scale: 1 };
         var total = 1 + Object.keys(config.anims).length;
         var done = 0;
 
         function checkDone() {
             done++;
-            heroLoading.textContent = '⏳ 模型加载 ' + done + '/' + total + '...';
+            var el = document.getElementById('heroLoading');
+            if (el) el.textContent = '⏳ 模型加载 ' + done + '/' + total + '...';
             if (done >= total) {
+                // 自动适配缩放
+                if (loaded.body) {
+                    var box = new THREE.Box3().setFromObject(loaded.body);
+                    var height = box.max.y - box.min.y;
+                    if (height > 0) {
+                        loaded.scale = TARGET_MODEL_HEIGHT / height;
+                    }
+                }
                 modelCache[heroType] = loaded;
                 callback();
             }
@@ -653,146 +503,83 @@
 
         // 加载身体
         loader.load(config.body, function(fbx) {
-            fbx.scale.setScalar(MODEL_SCALE);
-            // 找到SkinnedMesh
             var skinnedMesh = null;
-            fbx.traverse(function(child) {
-                if (child.isSkinnedMesh) {
-                    skinnedMesh = child;
-                }
-            });
+            fbx.traverse(function(child) { if (child.isSkinnedMesh) skinnedMesh = child; });
+            loaded.body = fbx;
             if (skinnedMesh) {
-                loaded.body = fbx;
                 loaded.skeleton = skinnedMesh.skeleton;
                 loaded.skinnedMesh = skinnedMesh;
-            } else {
-                console.warn('No SkinnedMesh in body FBX:', config.body);
-                loaded.body = fbx;
             }
             checkDone();
-        }, undefined, function(err) {
-            console.error('Body load error:', config.body, err);
-            checkDone();
-        });
+        }, undefined, function(err) { console.error('Body error:', err); checkDone(); });
 
-        // 加载动画文件
+        // 加载动画
         Object.keys(config.anims).forEach(function(animName) {
-            var animPath = config.anims[animName];
-            loader.load(animPath, function(fbx) {
+            loader.load(config.anims[animName], function(fbx) {
                 if (fbx.animations && fbx.animations.length > 0) {
                     loaded.clips[animName] = fbx.animations[0];
                     loaded.clips[animName].name = animName;
                 }
                 checkDone();
-            }, undefined, function(err) {
-                console.error('Anim load error:', animPath, err);
-                checkDone();
-            });
+            }, undefined, function(err) { console.error('Anim error:', err); checkDone(); });
         });
     }
 
-    // 创建玩家3D对象（FBX模型 + 动画）
     function createPlayerModel(heroType, isLocal) {
         var cached = modelCache[heroType];
-        if (!cached || !cached.body) {
-            // 降级到方块
-            return createFallbackCube(isLocal);
-        }
+        if (!cached || !cached.body) return createFallbackCube(isLocal);
 
-        // 克隆身体
         var body = cached.body.clone(true);
-        body.scale.setScalar(MODEL_SCALE);
+        body.scale.setScalar(cached.scale);
 
-        // 找到克隆后的SkinnedMesh
         var skinnedMesh = null;
         body.traverse(function(child) {
             if (child.isSkinnedMesh) {
                 skinnedMesh = child;
-                // 重新绑定骨骼
                 child.bind(cached.skeleton.clone(), child.bindMatrix);
             }
         });
 
-        // 创建AnimationMixer
         var mixer = new THREE.AnimationMixer(body);
         var actions = {};
-
-        // 为每个动画创建Action（retarget到身体骨骼）
-        var cachedClips = cached.clips;
         ['idle', 'run', 'attack'].forEach(function(animName) {
-            if (cachedClips[animName] && skinnedMesh) {
-                // 克隆clip并重新映射骨骼名称
-                var clip = retargetClip(cachedClips[animName], skinnedMesh.skeleton);
+            if (cached.clips[animName] && skinnedMesh) {
+                var clip = retargetClip(cached.clips[animName], skinnedMesh.skeleton);
                 var action = mixer.clipAction(clip);
                 action.setEffectiveWeight(0);
-                if (animName === 'idle') {
-                    action.setEffectiveWeight(1);
-                    action.play();
-                }
+                if (animName === 'idle') { action.setEffectiveWeight(1); action.play(); }
                 actions[animName] = action;
             }
         });
 
-        return {
-            group: body,
-            mixer: mixer,
-            actions: actions,
-            currentState: 'idle'
-        };
+        return { group: body, mixer: mixer, actions: actions, currentState: 'idle' };
     }
 
-    // Retarget动画clip到目标骨骼
     function retargetClip(sourceClip, targetSkeleton) {
-        var tracks = [];
         var targetBoneNames = {};
-        targetSkeleton.bones.forEach(function(bone) {
-            targetBoneNames[bone.name] = true;
-        });
-
-        sourceClip.tracks.forEach(function(track) {
-            // 提取骨骼名： "Hips.position" -> "Hips"
-            var parts = track.name.split('.');
-            var boneName = parts[0];
-            var prop = parts[1];
-
-            if (targetBoneNames[boneName]) {
-                tracks.push(track.clone());
-            }
-        });
-
-        var clip = new THREE.AnimationClip(sourceClip.name, sourceClip.duration, tracks);
-        return clip;
+        targetSkeleton.bones.forEach(function(b) { targetBoneNames[b.name] = true; });
+        var tracks = sourceClip.tracks.filter(function(t) {
+            return targetBoneNames[t.name.split('.')[0]];
+        }).map(function(t) { return t.clone(); });
+        return new THREE.AnimationClip(sourceClip.name, sourceClip.duration, tracks);
     }
 
     function createFallbackCube(isLocal) {
-        var color = isLocal ? 0x00b894 : 0x3498db;
-        var geo = new THREE.BoxGeometry(0.8, 1.2, 0.8);
-        var mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.4, metalness: 0.2 });
+        var geo = new THREE.BoxGeometry(0.6, 1.0, 0.6);
+        var mat = new THREE.MeshStandardMaterial({ color: isLocal ? 0x00b894 : 0x3498db, roughness: 0.4 });
         var mesh = new THREE.Mesh(geo, mat);
         mesh.castShadow = true;
-        mesh.position.y = 0.6;
-        return {
-            group: mesh,
-            mixer: null,
-            actions: {},
-            currentState: 'idle'
-        };
+        mesh.position.y = 0.5;
+        return { group: mesh, mixer: null, actions: {}, currentState: 'idle' };
     }
 
-    // ============================================================
-    //  动画状态机
-    // ============================================================
     function switchAnimation(player, newState) {
         if (!player.mixer || !player.actions[newState]) return;
         if (player.currentState === newState) return;
-
-        var oldAction = player.actions[player.currentState];
-        var newAction = player.actions[newState];
-
-        if (oldAction) {
-            oldAction.fadeOut(0.2);
-        }
-        newAction.reset().setEffectiveWeight(1).fadeIn(0.2).play();
+        var oldA = player.actions[player.currentState];
+        var newA = player.actions[newState];
+        if (oldA) oldA.fadeOut(0.2);
+        newA.reset().setEffectiveWeight(1).fadeIn(0.2).play();
         player.currentState = newState;
     }
 
@@ -801,12 +588,6 @@
     // ============================================================
     function enterGame() {
         inGame = true;
-        lobby.style.display = 'none';
-        heroSelect.style.display = 'none';
-        gameScreen.style.display = 'block';
-        hud.style.display = 'block';
-        hudRoomId.textContent = '#' + currentRoomId;
-
         if (!scene) initThreeJS();
         initLocalPlayer();
         startSyncLoop();
@@ -815,27 +596,15 @@
 
     function exitToLobby() {
         inGame = false;
-        lobby.style.display = 'flex';
-        heroSelect.style.display = 'none';
-        gameScreen.style.display = 'none';
-        hud.style.display = 'none';
+        showScreen('lobby');
         stopSyncLoop();
-
-        if (localPlayer) {
-            scene.remove(localPlayer.group);
-            localPlayer = null;
-        }
-        for (var uid in otherPlayers) {
-            scene.remove(otherPlayers[uid].group);
-        }
-        otherPlayers = {};
-        playerHeroMap = {};
-        moveTarget = null;
-        myHeroType = null;
+        if (localPlayer) { scene.remove(localPlayer.group); localPlayer = null; }
+        for (var uid in otherPlayers) { scene.remove(otherPlayers[uid].group); }
+        otherPlayers = {}; playerHeroMap = {}; roomPlayerData = {}; moveTarget = null; myHeroType = null;
     }
 
     // ============================================================
-    //  Three.js 初始化
+    //  Three.js
     // ============================================================
     function initThreeJS() {
         scene = new THREE.Scene();
@@ -849,31 +618,24 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.shadowMap.enabled = true;
-        gameScreen.appendChild(renderer.domElement);
+        screens.game.appendChild(renderer.domElement);
 
         clock = new THREE.Clock();
 
-        // 灯光
         scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-        var dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        dirLight.position.set(10, 20, 10);
-        dirLight.castShadow = true;
-        dirLight.shadow.camera.left = -20;
-        dirLight.shadow.camera.right = 20;
-        dirLight.shadow.camera.top = 20;
-        dirLight.shadow.camera.bottom = -20;
-        scene.add(dirLight);
+        var dir = new THREE.DirectionalLight(0xffffff, 0.8);
+        dir.position.set(10, 20, 10); dir.castShadow = true;
+        dir.shadow.camera.left = -20; dir.shadow.camera.right = 20;
+        dir.shadow.camera.top = 20; dir.shadow.camera.bottom = -20;
+        scene.add(dir);
 
-        // 地面
-        var groundGeo = new THREE.PlaneGeometry(40, 40);
-        var groundMat = new THREE.MeshStandardMaterial({ color: 0x2d3436, roughness: 0.8 });
-        groundPlane = new THREE.Mesh(groundGeo, groundMat);
-        groundPlane.rotation.x = -Math.PI / 2;
-        groundPlane.receiveShadow = true;
+        var gGeo = new THREE.PlaneGeometry(40, 40);
+        var gMat = new THREE.MeshStandardMaterial({ color: 0x2d3436, roughness: 0.8 });
+        groundPlane = new THREE.Mesh(gGeo, gMat);
+        groundPlane.rotation.x = -Math.PI / 2; groundPlane.receiveShadow = true;
         scene.add(groundPlane);
         scene.add(new THREE.GridHelper(40, 40, 0x444444, 0x333333));
 
-        // 输入
         window.addEventListener('keydown', onKeyDown);
         window.addEventListener('keyup', onKeyUp);
         renderer.domElement.addEventListener('click', onCanvasClick);
@@ -882,75 +644,36 @@
     }
 
     function initCameraControls() {
-        document.getElementById('camHeight').addEventListener('input', function() {
-            camHeight = parseInt(this.value);
-            document.getElementById('camHeightVal').textContent = camHeight;
-        });
-        document.getElementById('camDist').addEventListener('input', function() {
-            camDist = parseInt(this.value);
-            document.getElementById('camDistVal').textContent = camDist;
-        });
-        document.getElementById('camFov').addEventListener('input', function() {
-            camFov = parseInt(this.value);
-            document.getElementById('camFovVal').textContent = camFov;
-            if (camera) { camera.fov = camFov; camera.updateProjectionMatrix(); }
-        });
+        document.getElementById('camHeight').addEventListener('input', function() { camHeight = +this.value; document.getElementById('camHeightVal').textContent = camHeight; });
+        document.getElementById('camDist').addEventListener('input', function() { camDist = +this.value; document.getElementById('camDistVal').textContent = camDist; });
+        document.getElementById('camFov').addEventListener('input', function() { camFov = +this.value; document.getElementById('camFovVal').textContent = camFov; if (camera) { camera.fov = camFov; camera.updateProjectionMatrix(); } });
     }
 
     function toggleCamPanel() {
-        var panel = document.getElementById('camPanel');
-        var btn = document.getElementById('camToggle');
-        var show = !panel.classList.contains('show');
-        panel.classList.toggle('show', show);
-        btn.classList.toggle('active', show);
+        var p = document.getElementById('camPanel'), b = document.getElementById('camToggle');
+        var s = !p.classList.contains('show');
+        p.classList.toggle('show', s); b.classList.toggle('active', s);
     }
 
-    function onResize() {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    }
+    function onResize() { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); }
 
     // ============================================================
-    //  本地玩家初始化
+    //  本地玩家
     // ============================================================
     function initLocalPlayer() {
         if (localPlayer) return;
         var model = createPlayerModel(myHeroType, true);
         scene.add(model.group);
-        localPlayer = {
-            group: model.group,
-            mixer: model.mixer,
-            actions: model.actions,
-            currentState: model.currentState,
-            targetX: 0,
-            targetZ: 0
-        };
+        localPlayer = { group: model.group, mixer: model.mixer, actions: model.actions, currentState: model.currentState, targetX: 0, targetZ: 0 };
     }
 
     // ============================================================
     //  其他玩家同步
     // ============================================================
-    function syncPlayerList(players, positions) {
-        hudPlayerCount.textContent = players.length;
-
+    function syncOtherPlayers(players, positions) {
         var posMap = {};
-        if (positions) {
-            positions.forEach(function(p) {
-                posMap[p.userId] = p;
-                if (p.heroType) playerHeroMap[p.userId] = p.heroType;
-            });
-        }
-
-        // 删除离开的
-        for (var uid in otherPlayers) {
-            if (players.indexOf(uid) === -1) {
-                scene.remove(otherPlayers[uid].group);
-                delete otherPlayers[uid];
-            }
-        }
-
-        // 添加新玩家
+        if (positions) positions.forEach(function(p) { posMap[p.userId] = p; if (p.heroType) playerHeroMap[p.userId] = p.heroType; });
+        for (var uid in otherPlayers) { if (players.indexOf(uid) === -1) { scene.remove(otherPlayers[uid].group); delete otherPlayers[uid]; } }
         players.forEach(function(uid) {
             if (uid === myUserId) return;
             if (!otherPlayers[uid]) {
@@ -961,102 +684,56 @@
                 otherPlayers[uid].targetZ = posMap[uid].z;
             }
         });
-
         updateHudPlayerList(players);
     }
 
     function ensureOtherPlayerModel(userId, heroType, pos) {
-        // 如果已有且heroType没变，跳过
         if (otherPlayers[userId] && otherPlayers[userId].heroType === heroType) return;
-
-        // 如果有旧模型，移除
-        if (otherPlayers[userId]) {
-            scene.remove(otherPlayers[userId].group);
-        }
-
-        // 异步加载模型
+        if (otherPlayers[userId]) scene.remove(otherPlayers[userId].group);
         preloadModel(heroType, function() {
             if (!inGame) return;
             var model = createPlayerModel(heroType, false);
-            var x = pos ? pos.x : 0;
-            var z = pos ? pos.z : 0;
-            model.group.position.x = x;
-            model.group.position.z = z;
+            var x = pos ? pos.x : 0, z = pos ? pos.z : 0;
+            model.group.position.x = x; model.group.position.z = z;
             scene.add(model.group);
-            otherPlayers[userId] = {
-                group: model.group,
-                mixer: model.mixer,
-                actions: model.actions,
-                currentState: model.currentState,
-                heroType: heroType,
-                targetX: x,
-                targetZ: z
-            };
+            otherPlayers[userId] = { group: model.group, mixer: model.mixer, actions: model.actions, currentState: model.currentState, heroType: heroType, targetX: x, targetZ: z };
             updateHudPlayerList();
         });
     }
 
     function updateOtherPlayerPosition(userId, x, z) {
         if (userId === myUserId) return;
-        if (!otherPlayers[userId]) {
-            // 可能还没加载完，记住heroType等加载后再处理
-            var heroType = playerHeroMap[userId] || 'WARRIOR';
-            ensureOtherPlayerModel(userId, heroType, { x: x, z: z });
-            return;
-        }
-        otherPlayers[userId].targetX = x;
-        otherPlayers[userId].targetZ = z;
+        if (!otherPlayers[userId]) { ensureOtherPlayerModel(userId, playerHeroMap[userId] || 'WARRIOR', { x: x, z: z }); return; }
+        otherPlayers[userId].targetX = x; otherPlayers[userId].targetZ = z;
     }
 
     function updateOtherPlayerState(userId, state) {
-        if (userId === myUserId) return;
-        if (!otherPlayers[userId]) return;
-        var animState = (state === 'RUNNING') ? 'run' : 'idle';
-        switchAnimation(otherPlayers[userId], animState);
+        if (userId === myUserId || !otherPlayers[userId]) return;
+        switchAnimation(otherPlayers[userId], state === 'RUNNING' ? 'run' : 'idle');
     }
 
     function updateHudPlayerList(players) {
-        if (!players) {
-            // 重建已有列表
-            players = [myUserId];
-            for (var uid in otherPlayers) players.push(uid);
-        }
-        hudPlayerList.innerHTML = players.map(function(uid) {
+        if (!players) { players = [myUserId]; for (var uid in otherPlayers) players.push(uid); }
+        document.getElementById('hudPlayerCount').textContent = players.length;
+        document.getElementById('hudPlayerList').innerHTML = players.map(function(uid) {
             var isMe = uid === myUserId;
             var heroType = isMe ? myHeroType : playerHeroMap[uid];
             var hero = heroType ? HERO_CONFIG[heroType] : null;
-            var icon = hero ? hero.icon : '❓';
-            return '<div class="hud-player-item' + (isMe ? ' is-me' : '') + '">' +
-                '<span class="hud-hero-icon">' + icon + '</span> ' +
-                uid + (isMe ? ' (你)' : '') + '</div>';
+            return '<div class="hud-player-item' + (isMe ? ' is-me' : '') + '"><span class="hud-hero-icon">' + (hero ? hero.icon : '❓') + '</span> ' + uid + (isMe ? ' (你)' : '') + '</div>';
         }).join('');
     }
 
     // ============================================================
     //  输入
     // ============================================================
-    function onKeyDown(e) {
-        if (!inGame) return;
-        var k = e.key.toLowerCase();
-        if (k === 'escape') { leaveRoom(); return; }
-        if (k in keys) { keys[k] = true; moveTarget = null; }
-    }
-
-    function onKeyUp(e) {
-        var k = e.key.toLowerCase();
-        if (k in keys) keys[k] = false;
-    }
-
+    function onKeyDown(e) { if (!inGame) return; var k = e.key.toLowerCase(); if (k === 'escape') { leaveRoom(); return; } if (k in keys) { keys[k] = true; moveTarget = null; } }
+    function onKeyUp(e) { var k = e.key.toLowerCase(); if (k in keys) keys[k] = false; }
     function onCanvasClick(e) {
         if (!inGame) return;
-        mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-        mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        mouse.x = (e.clientX / window.innerWidth) * 2 - 1; mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
-        var intersects = raycaster.intersectObject(groundPlane);
-        if (intersects.length > 0) {
-            moveTarget = { x: intersects[0].point.x, z: intersects[0].point.z };
-            keys.w = keys.a = keys.s = keys.d = false;
-        }
+        var hits = raycaster.intersectObject(groundPlane);
+        if (hits.length > 0) { moveTarget = { x: hits[0].point.x, z: hits[0].point.z }; keys.w = keys.a = keys.s = keys.d = false; }
     }
 
     // ============================================================
@@ -1066,119 +743,65 @@
         if (syncTimer) return;
         syncTimer = setInterval(function() {
             if (!localPlayer || !inGame) return;
-            var x = localPlayer.group.position.x;
-            var z = localPlayer.group.position.z;
+            var x = localPlayer.group.position.x, z = localPlayer.group.position.z;
             if (x !== lastSentX || z !== lastSentZ) {
                 send({ type: 'MOVE', x: Math.round(x * 100) / 100, z: Math.round(z * 100) / 100 });
-                lastSentX = x;
-                lastSentZ = z;
+                lastSentX = x; lastSentZ = z;
             }
         }, SYNC_INTERVAL);
     }
-
-    function stopSyncLoop() {
-        if (syncTimer) { clearInterval(syncTimer); syncTimer = null; }
-        lastSentX = lastSentZ = null;
-        lastSentState = null;
-    }
+    function stopSyncLoop() { if (syncTimer) { clearInterval(syncTimer); syncTimer = null; } lastSentX = lastSentZ = null; lastSentState = null; }
 
     // ============================================================
-    //  游戏主循环
+    //  主循环
     // ============================================================
     function animate() {
         if (!inGame) return;
         requestAnimationFrame(animate);
-
         var dt = clock.getDelta();
         if (dt > 0.1) dt = 0.1;
 
-        // 更新所有mixer
         if (localPlayer && localPlayer.mixer) localPlayer.mixer.update(dt);
-        for (var uid in otherPlayers) {
-            if (otherPlayers[uid].mixer) otherPlayers[uid].mixer.update(dt);
-        }
+        for (var uid in otherPlayers) if (otherPlayers[uid].mixer) otherPlayers[uid].mixer.update(dt);
 
-        // --- 本地玩家移动 ---
         if (localPlayer) {
-            var moved = false;
-            var dx = 0, dz = 0;
-
+            var moved = false, dx = 0, dz = 0;
             if (keys.w) { dz -= 1; moved = true; }
             if (keys.s) { dz += 1; moved = true; }
             if (keys.a) { dx -= 1; moved = true; }
             if (keys.d) { dx += 1; moved = true; }
-
-            if (moved) {
-                var len = Math.sqrt(dx * dx + dz * dz);
-                if (len > 0) { dx /= len; dz /= len; }
-                moveTarget = {
-                    x: localPlayer.group.position.x + dx * 0.5,
-                    z: localPlayer.group.position.z + dz * 0.5
-                };
-            }
+            if (moved) { var len = Math.sqrt(dx*dx+dz*dz); if (len>0) { dx/=len; dz/=len; } moveTarget = { x: localPlayer.group.position.x + dx*0.5, z: localPlayer.group.position.z + dz*0.5 }; }
 
             var isMoving = false;
             if (moveTarget) {
-                var tdx = moveTarget.x - localPlayer.group.position.x;
-                var tdz = moveTarget.z - localPlayer.group.position.z;
-                var dist = Math.sqrt(tdx * tdx + tdz * tdz);
-                var step = MOVE_SPEED * dt;
-
-                if (dist < step) {
-                    if (!moved) {
-                        localPlayer.group.position.x = moveTarget.x;
-                        localPlayer.group.position.z = moveTarget.z;
-                        moveTarget = null;
-                    }
-                } else {
-                    var nx = tdx / dist;
-                    var nz = tdz / dist;
-                    localPlayer.group.position.x += nx * step;
-                    localPlayer.group.position.z += nz * step;
-                    localPlayer.group.rotation.y = Math.atan2(nx, nz);
-                    isMoving = true;
-                }
+                var tdx = moveTarget.x - localPlayer.group.position.x, tdz = moveTarget.z - localPlayer.group.position.z;
+                var dist = Math.sqrt(tdx*tdx+tdz*tdz), step = MOVE_SPEED * dt;
+                if (dist < step) { if (!moved) { localPlayer.group.position.x = moveTarget.x; localPlayer.group.position.z = moveTarget.z; moveTarget = null; } }
+                else { var nx = tdx/dist, nz = tdz/dist; localPlayer.group.position.x += nx*step; localPlayer.group.position.z += nz*step; localPlayer.group.rotation.y = Math.atan2(nx, nz); isMoving = true; }
             }
-
-            // 边界
             localPlayer.group.position.x = Math.max(-19, Math.min(19, localPlayer.group.position.x));
             localPlayer.group.position.z = Math.max(-19, Math.min(19, localPlayer.group.position.z));
 
-            // 动画状态
-            var newState = isMoving ? 'RUNNING' : 'IDLE';
             switchAnimation(localPlayer, isMoving ? 'run' : 'idle');
-            if (newState !== lastSentState) {
-                send({ type: 'CHANGE_STATE', state: newState });
-                lastSentState = newState;
-            }
+            var newState = isMoving ? 'RUNNING' : 'IDLE';
+            if (newState !== lastSentState) { send({ type: 'CHANGE_STATE', state: newState }); lastSentState = newState; }
 
-            // 摄像机
             camera.position.x = localPlayer.group.position.x;
             camera.position.y = camHeight;
             camera.position.z = localPlayer.group.position.z + camDist;
             camera.lookAt(localPlayer.group.position.x, 0, localPlayer.group.position.z);
 
-            coordDisplay.textContent = 'XYZ: ' +
-                localPlayer.group.position.x.toFixed(1) + ' / 0 / ' +
-                localPlayer.group.position.z.toFixed(1);
+            coordDisplay.textContent = 'XYZ: ' + localPlayer.group.position.x.toFixed(1) + ' / 0 / ' + localPlayer.group.position.z.toFixed(1);
         }
 
-        // --- 其他玩家插值 ---
         for (var uid in otherPlayers) {
             var op = otherPlayers[uid];
-            var odx = op.targetX - op.group.position.x;
-            var odz = op.targetZ - op.group.position.z;
-            var oMoving = (Math.abs(odx) > 0.01 || Math.abs(odz) > 0.01);
-
+            var odx = op.targetX - op.group.position.x, odz = op.targetZ - op.group.position.z;
+            var oMoving = Math.abs(odx) > 0.01 || Math.abs(odz) > 0.01;
             op.group.position.x += odx * LERP_SPEED * dt;
             op.group.position.z += odz * LERP_SPEED * dt;
-
-            if (oMoving) {
-                op.group.rotation.y = Math.atan2(odx, odz);
-                switchAnimation(op, 'run');
-            } else {
-                switchAnimation(op, 'idle');
-            }
+            if (oMoving) { op.group.rotation.y = Math.atan2(odx, odz); switchAnimation(op, 'run'); }
+            else switchAnimation(op, 'idle');
         }
 
         renderer.render(scene, camera);
