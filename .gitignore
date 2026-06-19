@@ -1,0 +1,21 @@
+# Build artifacts
+server/target/
+*.class
+*.jar
+dependency-reduced-pom.xml
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+*.corrupted
+*.bak
+
+# FBX models (太大，不推GitHub，只在服务器本地)
+*.fbx

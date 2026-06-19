@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOBA 防守游戏</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ========== 大厅UI ========== */
+        #lobby {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 40px;
+            width: 460px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 26px;
+            background: linear-gradient(90deg, #ff6b6b, #ffd93d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section { margin-bottom: 20px; }
+        .section-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .row { display: flex; gap: 10px; margin-bottom: 10px; }
+
+        input {
+            flex: 1;
+            padding: 11px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        input:focus { border-color: #ff6b6b; }
+        input::placeholder { color: #555; }
+
+        button {
+            padding: 11px 18px;
+            border-radius: 10px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-connect {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: #fff;
+            width: 100%;
+        }
+        .btn-connect:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,184,148,0.4); }
+        .btn-connect.connected {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .btn-create {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: #fff;
+            flex: 1;
+        }
+        .btn-create:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(255,107,107,0.4); }
+
+        .btn-join {
+            background: linear-gradient(135deg, #ffd93d, #ff9f43);
+            color: #000;
+        }
+        .btn-join:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(255,217,61,0.4); }
+
+        .status-bar {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .status-bar.disconnected { background: rgba(231,76,60,0.2); color: #e74c3c; }
+        .status-bar.connected { background: rgba(46,204,113,0.2); color: #2ecc71; }
+
+        .log-panel {
+            margin-top: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 12px;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+        .log-panel .title { font-size: 11px; color: #666; margin-bottom: 8px; }
+        .log-entry { font-size: 11px; color: #888; margin-bottom: 3px; font-family: monospace; }
+        .log-entry.ok { color: #2ecc71; }
+        .log-entry.err { color: #e74c3c; }
+        .log-entry.info { color: #3498db; }
+
+        /* ========== 游戏UI ========== */
+        #gameScreen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+        }
+        #gameScreen canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* HUD覆盖层 */
+        #hud {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: none;
+            pointer-events: none;
+            z-index: 10;
+        }
+        #hud > * { pointer-events: auto; }
+
+        /* 左上角：房间信息 */
+        .hud-top-left {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+        }
+        .hud-box {
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 12px 18px;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 8px;
+            min-width: 160px;
+        }
+        .hud-label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .hud-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            margin-top: 2px;
+        }
+
+        /* 右上角：在线玩家 */
+        .hud-top-right {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            min-width: 200px;
+        }
+        .hud-player-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #ffd93d;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        .hud-player-item {
+            font-size: 13px;
+            color: #ccc;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .hud-player-item.is-me {
+            color: #2ecc71;
+            font-weight: 600;
+        }
+        .hud-player-item:last-child { border-bottom: none; }
+
+        /* 右上角按钮 */
+        .hud-actions {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 8px;
+        }
+        .btn-hud {
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-hud:hover { background: rgba(255,255,255,0.15); }
+
+        /* 底部：操作提示 */
+        .hud-bottom {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 10px 24px;
+            border: 1px solid rgba(255,255,255,0.08);
+            font-size: 13px;
+            color: #aaa;
+            letter-spacing: 0.5px;
+        }
+        .hud-bottom kbd {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            padding: 2px 7px;
+            font-size: 12px;
+            font-family: monospace;
+            color: #ffd93d;
+            margin: 0 2px;
+        }
+
+        /* 左下角：坐标 */
+        .hud-coord {
+            position: absolute;
+            bottom: 20px;
+            left: 16px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-family: monospace;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <!-- ========== 大厅 ========== -->
+    <div id="lobby">
+        <div class="container">
+            <h1>🎮 MOBA 防守游戏</h1>
+
+            <div id="connectSection">
+                <div class="section">
+                    <div class="section-label">连接状态</div>
+                    <div id="statusBar" class="status-bar disconnected">未连接</div>
+                    <button id="btnConnect" class="btn-connect" onclick="toggleConnection()">连接服务器</button>
+                </div>
+                <div class="section">
+                    <div class="section-label">用户ID</div>
+                    <input type="text" id="inputUserId" placeholder="输入你的用户ID">
+                </div>
+                <div class="section">
+                    <div class="section-label">房间操作</div>
+                    <div class="row">
+                        <button class="btn-create" onclick="createRoom()">🏠 创建房间</button>
+                    </div>
+                    <div class="row">
+                        <input type="text" id="inputRoomId" placeholder="输入房间号">
+                        <button class="btn-join" onclick="joinRoom()">🚪 加入</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="log-panel">
+                <div class="title">📋 控制台日志</div>
+                <div id="logContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 游戏场景 ========== -->
+    <div id="gameScreen"></div>
+
+    <!-- HUD -->
+    <div id="hud">
+        <!-- 左上：房间信息 -->
+        <div class="hud-top-left">
+            <div class="hud-box">
+                <div class="hud-label">房间</div>
+                <div class="hud-value" id="hudRoomId">#0000</div>
+            </div>
+            <div class="hud-box">
+                <div class="hud-label">玩家</div>
+                <div class="hud-value" id="hudPlayerCount">0</div>
+            </div>
+        </div>
+
+        <!-- 右上：在线玩家列表 -->
+        <div class="hud-top-right">
+            <div class="hud-box">
+                <div class="hud-player-title">🎮 在线玩家</div>
+                <div id="hudPlayerList"></div>
+            </div>
+            <div style="text-align:right; margin-top:8px;">
+                <button class="btn-hud" onclick="leaveRoom()">🚪 离开房间</button>
+            </div>
+        </div>
+
+        <!-- 底部：操作提示 -->
+        <div class="hud-bottom">
+            <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移动 &nbsp;|&nbsp;
+            鼠标点击移动 &nbsp;|&nbsp;
+            <kbd>ESC</kbd> 离开
+        </div>
+
+        <!-- 左下：坐标 -->
+        <div class="hud-coord" id="coordDisplay">XYZ: 0.0 / 0.6 / 0.0</div>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+    <script>
+    // ============================================================
+    //  配置
+    // ============================================================
+    var WS_URL = 'ws://' + location.host + '/ws';
+    var MOVE_SPEED = 5;         // 单位/秒
+    var SYNC_INTERVAL = 50;     // ms
+    var LERP_SPEED = 10;        // 其他玩家位置插值速度
+
+    // ============================================================
+    //  状态
+    // ============================================================
+    var ws = null;
+    var connected = false;
+    var currentRoomId = null;
+    var myUserId = null;
+    var inGame = false;
+
+    // Three.js
+    var scene, camera, renderer, clock;
+    var groundPlane;
+    var localPlayer = null;     // { mesh, targetX, targetZ }
+    var otherPlayers = {};      // userId -> { mesh, targetX, targetZ }
+
+    // 输入
+    var keys = { w: false, a: false, s: false, d: false };
+    var moveTarget = null;      // { x, z } 鼠标点击目标
+
+    // 同步
+    var syncTimer = null;
+    var lastSentX = null, lastSentZ = null;
+
+    // Raycaster
+    var raycaster = new THREE.Raycaster();
+    var mouse = new THREE.Vector2();
+
+    // ============================================================
+    //  DOM
+    // ============================================================
+    var statusBar = document.getElementById('statusBar');
+    var btnConnect = document.getElementById('btnConnect');
+    var inputUserId = document.getElementById('inputUserId');
+    var lobby = document.getElementById('lobby');
+    var gameScreen = document.getElementById('gameScreen');
+    var hud = document.getElementById('hud');
+    var hudRoomId = document.getElementById('hudRoomId');
+    var hudPlayerCount = document.getElementById('hudPlayerCount');
+    var hudPlayerList = document.getElementById('hudPlayerList');
+    var coordDisplay = document.getElementById('coordDisplay');
+    var logContainer = document.getElementById('logContainer');
+
+    inputUserId.value = 'player_' + Math.random().toString(36).substr(2, 6);
+
+    // ============================================================
+    //  日志
+    // ============================================================
+    function log(msg, type) {
+        var entry = document.createElement('div');
+        entry.className = 'log-entry ' + (type || '');
+        entry.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+        logContainer.prepend(entry);
+    }
+
+    // ============================================================
+    //  WebSocket
+    // ============================================================
+    function toggleConnection() {
+        if (connected) { disconnect(); } else { connect(); }
+    }
+
+    function connect() {
+        myUserId = inputUserId.value.trim();
+        if (!myUserId) { log('请输入用户ID', 'err'); return; }
+        log('正在连接服务器...', 'info');
+        ws = new WebSocket(WS_URL);
+
+        ws.onopen = function() {
+            connected = true;
+            updateConnectionUI(true);
+            log('✅ 已连接到服务器', 'ok');
+        };
+
+        ws.onmessage = function(event) {
+            handleMessage(JSON.parse(event.data));
+        };
+
+        ws.onclose = function() {
+            connected = false;
+            updateConnectionUI(false);
+            log('❌ 连接已断开', 'err');
+            if (inGame) exitToLobby();
+        };
+
+        ws.onerror = function() { log('❌ 连接错误', 'err'); };
+    }
+
+    function disconnect() {
+        if (currentRoomId) leaveRoom();
+        if (ws) ws.close();
+    }
+
+    function updateConnectionUI(isConnected) {
+        statusBar.textContent = isConnected ? '已连接' : '未连接';
+        statusBar.className = 'status-bar ' + (isConnected ? 'connected' : 'disconnected');
+        btnConnect.textContent = isConnected ? '断开连接' : '连接服务器';
+        btnConnect.className = 'btn-connect' + (isConnected ? ' connected' : '');
+    }
+
+    function send(obj) {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(obj));
+        }
+    }
+
+    // ============================================================
+    //  消息处理
+    // ============================================================
+    function handleMessage(data) {
+        console.log('收到:', data);
+
+        switch (data.type) {
+            case 'ROOM_CREATED':
+                currentRoomId = data.roomId;
+                log('🎉 房间创建: #' + data.roomId, 'ok');
+                enterGame(data.roomId, data.players, data.positions);
+                break;
+
+            case 'ROOM_JOINED':
+                currentRoomId = data.roomId;
+                log('🚪 加入房间: #' + data.roomId, 'ok');
+                enterGame(data.roomId, data.players, data.positions);
+                break;
+
+            case 'ROOM_LEFT':
+                log('👋 已离开房间', 'info');
+                currentRoomId = null;
+                exitToLobby();
+                break;
+
+            case 'ROOM_STATE':
+                log('📢 玩家变动 (' + data.players.length + '人)', 'info');
+                syncPlayerList(data.players, data.positions);
+                break;
+
+            case 'PLAYER_MOVED':
+                updateOtherPlayer(data.userId, data.x, data.z);
+                break;
+
+            case 'ERROR':
+                log('❌ ' + data.message, 'err');
+                break;
+
+            default:
+                log('❓ 未知: ' + data.type, 'err');
+        }
+    }
+
+    // ============================================================
+    //  房间操作
+    // ============================================================
+    function createRoom() {
+        if (!connected) { log('请先连接', 'err'); return; }
+        myUserId = inputUserId.value.trim();
+        if (!myUserId) { log('请输入用户ID', 'err'); return; }
+        send({ type: 'CREATE_ROOM', userId: myUserId });
+    }
+
+    function joinRoom() {
+        if (!connected) { log('请先连接', 'err'); return; }
+        myUserId = inputUserId.value.trim();
+        var roomId = document.getElementById('inputRoomId').value.trim();
+        if (!myUserId) { log('请输入用户ID', 'err'); return; }
+        if (!roomId) { log('请输入房间号', 'err'); return; }
+        send({ type: 'JOIN_ROOM', userId: myUserId, roomId: roomId });
+    }
+
+    function leaveRoom() {
+        if (!connected || !currentRoomId) return;
+        send({ type: 'LEAVE_ROOM', userId: myUserId });
+    }
+
+    // ============================================================
+    //  进入/退出游戏
+    // ============================================================
+    function enterGame(roomId, players, positions) {
+        inGame = true;
+        lobby.style.display = 'none';
+        gameScreen.style.display = 'block';
+        hud.style.display = 'block';
+        coordDisplay.style.display = 'block';
+        hudRoomId.textContent = '#' + roomId;
+
+        if (!scene) {
+            initThreeJS();
+        }
+        initLocalPlayer();
+        syncPlayerList(players, positions);
+        startSyncLoop();
+
+        animate();
+    }
+
+    function exitToLobby() {
+        inGame = false;
+        lobby.style.display = 'flex';
+        gameScreen.style.display = 'none';
+        hud.style.display = 'none';
+        coordDisplay.style.display = 'none';
+        stopSyncLoop();
+
+        // 清理场景
+        if (localPlayer && localPlayer.mesh) {
+            scene.remove(localPlayer.mesh);
+            localPlayer = null;
+        }
+        for (var uid in otherPlayers) {
+            scene.remove(otherPlayers[uid].mesh);
+        }
+        otherPlayers = {};
+        moveTarget = null;
+    }
+
+    // ============================================================
+    //  Three.js 初始化
+    // ============================================================
+    function initThreeJS() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a2e);
+        scene.fog = new THREE.Fog(0x1a1a2e, 30, 80);
+
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
+        camera.position.set(0, 12, 12);
+        camera.lookAt(0, 0, 0);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        gameScreen.appendChild(renderer.domElement);
+
+        clock = new THREE.Clock();
+
+        // 灯光
+        var ambient = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambient);
+
+        var dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(10, 20, 10);
+        dirLight.castShadow = true;
+        dirLight.shadow.camera.left = -20;
+        dirLight.shadow.camera.right = 20;
+        dirLight.shadow.camera.top = 20;
+        dirLight.shadow.camera.bottom = -20;
+        scene.add(dirLight);
+
+        // 地面
+        var groundGeo = new THREE.PlaneGeometry(40, 40);
+        var groundMat = new THREE.MeshStandardMaterial({
+            color: 0x2d3436,
+            roughness: 0.8
+        });
+        groundPlane = new THREE.Mesh(groundGeo, groundMat);
+        groundPlane.rotation.x = -Math.PI / 2;
+        groundPlane.receiveShadow = true;
+        scene.add(groundPlane);
+
+        // 网格辅助线
+        var gridHelper = new THREE.GridHelper(40, 40, 0x444444, 0x333333);
+        scene.add(gridHelper);
+
+        // 输入监听
+        window.addEventListener('keydown', onKeyDown);
+        window.addEventListener('keyup', onKeyUp);
+        renderer.domElement.addEventListener('click', onCanvasClick);
+        window.addEventListener('resize', onWindowResize);
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // ============================================================
+    //  玩家方块
+    // ============================================================
+    function createCube(color) {
+        var geo = new THREE.BoxGeometry(0.8, 1.2, 0.8);
+        var mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.4, metalness: 0.2 });
+        var mesh = new THREE.Mesh(geo, mat);
+        mesh.castShadow = true;
+        mesh.position.y = 0.6;
+        return mesh;
+    }
+
+    function initLocalPlayer() {
+        if (localPlayer) return;
+        var mesh = createCube(0x00b894); // 绿色
+        scene.add(mesh);
+        localPlayer = { mesh: mesh, targetX: 0, targetZ: 0 };
+    }
+
+    // ============================================================
+    //  玩家列表同步
+    // ============================================================
+    function syncPlayerList(players, positions) {
+        hudPlayerCount.textContent = players.length;
+
+        // 右上角玩家列表
+        hudPlayerList.innerHTML = players.map(function(uid) {
+            var isMe = uid === myUserId;
+            return '<div class="hud-player-item' + (isMe ? ' is-me' : '') + '">' +
+                uid + (isMe ? ' (你)' : '') + '</div>';
+        }).join('');
+
+        // 构建positions查找表
+        var posMap = {};
+        if (positions) {
+            positions.forEach(function(p) { posMap[p.userId] = p; });
+        }
+
+        // 删除离开的玩家
+        for (var uid in otherPlayers) {
+            if (players.indexOf(uid) === -1) {
+                scene.remove(otherPlayers[uid].mesh);
+                delete otherPlayers[uid];
+            }
+        }
+
+        // 添加新玩家
+        players.forEach(function(uid) {
+            if (uid === myUserId) return;
+            if (!otherPlayers[uid]) {
+                var mesh = createCube(0x3498db); // 蓝色
+                scene.add(mesh);
+                var pos = posMap[uid];
+                var x = pos ? pos.x : 0;
+                var z = pos ? pos.z : 0;
+                mesh.position.x = x;
+                mesh.position.z = z;
+                otherPlayers[uid] = { mesh: mesh, targetX: x, targetZ: z };
+            } else if (posMap[uid]) {
+                // 已存在，更新目标位置
+                otherPlayers[uid].targetX = posMap[uid].x;
+                otherPlayers[uid].targetZ = posMap[uid].z;
+            }
+        });
+    }
+
+    function updateOtherPlayer(userId, x, z) {
+        if (userId === myUserId) return;
+        if (!otherPlayers[userId]) {
+            var mesh = createCube(0x3498db);
+            scene.add(mesh);
+            otherPlayers[userId] = { mesh: mesh, targetX: x, targetZ: z };
+        } else {
+            otherPlayers[userId].targetX = x;
+            otherPlayers[userId].targetZ = z;
+        }
+    }
+
+    // ============================================================
+    //  输入处理
+    // ============================================================
+    function onKeyDown(e) {
+        if (!inGame) return;
+        var k = e.key.toLowerCase();
+        if (k === 'escape') { leaveRoom(); return; }
+        if (k in keys) {
+            keys[k] = true;
+            moveTarget = null; // WASD取消鼠标目标
+        }
+    }
+
+    function onKeyUp(e) {
+        var k = e.key.toLowerCase();
+        if (k in keys) keys[k] = false;
+    }
+
+    function onCanvasClick(e) {
+        if (!inGame) return;
+        mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        var intersects = raycaster.intersectObject(groundPlane);
+        if (intersects.length > 0) {
+            var pt = intersects[0].point;
+            moveTarget = { x: pt.x, z: pt.z };
+            // 重置WASD，避免冲突
+            keys.w = keys.a = keys.s = keys.d = false;
+        }
+    }
+
+    // ============================================================
+    //  同步循环（50ms一次）
+    // ============================================================
+    function startSyncLoop() {
+        if (syncTimer) return;
+        syncTimer = setInterval(function() {
+            if (!localPlayer || !inGame) return;
+            var x = localPlayer.mesh.position.x;
+            var z = localPlayer.mesh.position.z;
+            // 只有位置变化才发送
+            if (x !== lastSentX || z !== lastSentZ) {
+                send({ type: 'MOVE', x: Math.round(x * 100) / 100, z: Math.round(z * 100) / 100 });
+                lastSentX = x;
+                lastSentZ = z;
+            }
+        }, SYNC_INTERVAL);
+    }
+
+    function stopSyncLoop() {
+        if (syncTimer) { clearInterval(syncTimer); syncTimer = null; }
+        lastSentX = lastSentZ = null;
+    }
+
+    // ============================================================
+    //  游戏主循环
+    // ============================================================
+    function animate() {
+        if (!inGame) return;
+        requestAnimationFrame(animate);
+
+        var dt = clock.getDelta();
+        if (dt > 0.1) dt = 0.1; // 防止大跳帧
+
+        // --- 本地玩家移动 ---
+        if (localPlayer) {
+            var moved = false;
+            var dx = 0, dz = 0;
+
+            // WASD
+            if (keys.w) { dz -= 1; moved = true; }
+            if (keys.s) { dz += 1; moved = true; }
+            if (keys.a) { dx -= 1; moved = true; }
+            if (keys.d) { dx += 1; moved = true; }
+
+            if (moved) {
+                // 归一化
+                var len = Math.sqrt(dx * dx + dz * dz);
+                if (len > 0) { dx /= len; dz /= len; }
+                // 设置前方目标（每帧更新，形成持续移动）
+                moveTarget = {
+                    x: localPlayer.mesh.position.x + dx * 0.5,
+                    z: localPlayer.mesh.position.z + dz * 0.5
+                };
+            }
+
+            // 向目标移动
+            if (moveTarget) {
+                var tdx = moveTarget.x - localPlayer.mesh.position.x;
+                var tdz = moveTarget.z - localPlayer.mesh.position.z;
+                var dist = Math.sqrt(tdx * tdx + tdz * tdz);
+                var step = MOVE_SPEED * dt;
+
+                if (dist < step) {
+                    // 到达目标（非WASD模式下停止）
+                    if (!moved) {
+                        localPlayer.mesh.position.x = moveTarget.x;
+                        localPlayer.mesh.position.z = moveTarget.z;
+                        moveTarget = null;
+                    }
+                } else {
+                    var nx = tdx / dist;
+                    var nz = tdz / dist;
+                    localPlayer.mesh.position.x += nx * step;
+                    localPlayer.mesh.position.z += nz * step;
+
+                    // 转向
+                    localPlayer.mesh.rotation.y = Math.atan2(nx, nz);
+                }
+            }
+
+            // 边界限制
+            localPlayer.mesh.position.x = Math.max(-19, Math.min(19, localPlayer.mesh.position.x));
+            localPlayer.mesh.position.z = Math.max(-19, Math.min(19, localPlayer.mesh.position.z));
+
+            // 摄像机跟随
+            camera.position.x = localPlayer.mesh.position.x;
+            camera.position.z = localPlayer.mesh.position.z + 12;
+            camera.lookAt(localPlayer.mesh.position.x, 0, localPlayer.mesh.position.z);
+
+            // 坐标显示
+            coordDisplay.textContent = 'XYZ: ' +
+                localPlayer.mesh.position.x.toFixed(1) + ' / 0.6 / ' +
+                localPlayer.mesh.position.z.toFixed(1);
+        }
+
+        // --- 其他玩家插值 ---
+        for (var uid in otherPlayers) {
+            var op = otherPlayers[uid];
+            var odx = op.targetX - op.mesh.position.x;
+            var odz = op.targetZ - op.mesh.position.z;
+            op.mesh.position.x += odx * LERP_SPEED * dt;
+            op.mesh.position.z += odz * LERP_SPEED * dt;
+
+            // 转向
+            if (Math.abs(odx) > 0.01 || Math.abs(odz) > 0.01) {
+                op.mesh.rotation.y = Math.atan2(odx, odz);
+            }
+        }
+
+        renderer.render(scene, camera);
+    }
+
+    </script>
+</body>
+</html>
